@@ -6,6 +6,8 @@
 #
 # This script uses hexdump, /dev/urandom, and grep.
 #
+# Licensed under WTFPL: http://sam.zoy.org/wtfpl/
+#
 
 echoWord() {
 	echo $2
