@@ -1,0 +1,77 @@
+#!/bin/sh
+#
+# Allows a user to generate diceware passwords.
+#
+# USAGE: ./diceware <wordlist> <amount words> [<separator>]
+#
+# This script uses hexdump, /dev/urandom, and grep.
+#
+
+echoWord() {
+	echo $2
+}
+
+generateWord() {
+	local randomInt
+	while :
+	do
+		# A word list consists of exactly 7776 entries (6^5), since there are 5 dices that need to be rolled.
+		# Since the script deals with bytes, the minimum amount of bytes to retrieve is 2 (8^2 being 65536).
+		#
+		# That number then has to be converted to 8192, which 1. is the nearest number that's a power of 2
+		# and 2. will not introduce any bias when mapping 0-65535 -> 0-8191.
+		#
+		# This means that in some cases when the number is larger than 7776, it needs to be retried. Simply mapping
+		# 0-65535 to 0-7775 introduces a bias in word selection, albeit not a fairly large one.
+		#
+		randomInt=$((`hexdump -n2 -e '/2 "%u"' /dev/urandom` % 8192))
+		if [ "$randomInt" -le 7775 ]; then
+			break
+		fi
+	done
+
+	# The word list contains dice outcomes. Simply convert the number back to base 6 (starting with 1 instead of 0)
+	local generated
+	local x=0
+	while :
+	do
+		local number=$(($randomInt % 6 + 1))
+		randomInt=$(($randomInt / 6))
+		generated="$number$generated"
+		x=$(($x + 1))
+		if [ "$x" = "5" ]; then
+			break
+		fi
+	done
+
+	echoWord `grep "$generated" "$1"`
+}
+
+if [ "$2" = "" ]; then
+	echo "Usage $0 <wordlist> <amount words> [<separator>]" 1>&2
+	exit 1
+fi
+
+separator=$3
+if [ "$separator" = "" ]; then
+	separator=" "
+fi
+
+x=0
+while :
+do
+	if [ "$x" -ge "$2" ]; then
+		break
+	fi
+
+	word=`generateWord "$1"`
+	if [ "$result" = "" ]; then
+		result=$word
+	else
+		result="$result$separator$word"
+	fi
+
+	x=$(($x+1))
+done
+
+echo "$result"
