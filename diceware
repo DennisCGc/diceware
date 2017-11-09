@@ -18,7 +18,7 @@ generateWord() {
 	while :
 	do
 		# A word list consists of exactly 7776 entries (6^5), since there are 5 dices that need to be rolled.
-		# Since the script deals with bytes, the minimum amount of bytes to retrieve is 2 (8^2 being 65536).
+		# Since the script deals with bytes, the minimum amount of bytes to retrieve is 2 ((2^8)^2 being 65536).
 		#
 		# That number then has to be converted to 8192, which 1. is the nearest number that's a power of 2
 		# and 2. will not introduce any bias when mapping 0-65535 -> 0-8191.
